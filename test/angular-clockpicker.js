@@ -15,7 +15,7 @@ describe('The angular-clockpicker module', function() {
     self = this;
   });
 
-  describe('clockpicker-wrapper directive', function() {
+  describe('lng-clockpicker directive', function() {
 
     beforeEach(function() {
       this.directiveElement = {};
@@ -28,7 +28,7 @@ describe('The angular-clockpicker module', function() {
           }
         });
 
-        $provide.decorator('clockpickerWrapperDirective', function($delegate) {
+        $provide.decorator('lngClockpickerDirective', function($delegate) {
           var directive = $delegate[0];
           directive.compile = function() {
             return function() {
@@ -54,7 +54,7 @@ describe('The angular-clockpicker module', function() {
       this.clockpickerService = clockpickerService;
 
       this.initDirective = function() {
-        var html = '<form name="form"><input ng-model="date" name="date" clockpicker-wrapper clockpicker-options=\'' + JSON.stringify(this.options) + '\'/></form>';
+        var html = '<form name="form"><input ng-model="date" name="date" lng-clockpicker lng-clockpicker-options=\'' + JSON.stringify(this.options) + '\'/></form>';
         this.formElement = this.$compile(html)(this.$scope);
         this.$scope.$digest();
         this.dateNgModel = this.$scope.form.date;
