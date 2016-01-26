@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/linagora/angular-clockpicker.svg?branch=master)](https://travis-ci.org/linagora/angular-clockpicker)
+
 angular-clockpicker
 ===================
 
