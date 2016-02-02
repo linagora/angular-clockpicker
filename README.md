@@ -23,3 +23,9 @@ Changelog
 1.0.0
 
 * Renaming clockpicker-wrapper directive into lng-clockpicker
+
+1.1.0
+
+* Add nativeOnMobile options in order to delegate to system timepicker on mobile devices
+
+* Correct update of view on mutation of moment date
