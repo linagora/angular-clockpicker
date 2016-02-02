@@ -63,6 +63,12 @@ describe('The angular-clockpicker module', function() {
       this.initDirective();
     }));
 
+    it('should properly watch change on the moment date', function() {
+      this.$scope.date.hour('13');
+      this.$scope.$digest();
+      expect(this.directiveElement.val()).to.equal('01:00 PM');
+    });
+
     it('should not make field read-only one non mobile device', function() {
       this.directiveElement.addClass = sinon.spy();
       this.directiveElement.attr = sinon.spy();
