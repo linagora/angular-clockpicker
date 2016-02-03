@@ -10,10 +10,12 @@ In order to correct this bug, we create a [fork](https://github.com/linagora/clo
 Usage
 =====
 
-You can take a look at the index.html and app.js in the example folder. But to use angular-clockpicker, you just need to add the attribute clockpicker-wrapper on a input field. This one will be made read-only on mobile device in order to avoir the virtual keyboard to popup when a user touch the field.
+You can take a look at the index.html and app.js in the example folder. But to use angular-clockpicker, you just need to add the attribute clockpicker-wrapper on a input field. This one will be made read-only on mobile devices in order to avoir the virtual keyboard to popup when a user touch the field.
 You can specify option of clock-picker documented [here](http://weareoutman.github.io/clockpicker/) by using the clockpicker-options attribute.
 
     <input type='text' data-ng-model='test' data-lng-clockpicker></input>
+
+Moreover if you set nativeOnMobile in clockpicker-options, on mobile devices the clockpicker will not be used and the system timepicker will be used instead.
 
 Changelog
 =========
@@ -21,3 +23,9 @@ Changelog
 1.0.0
 
 * Renaming clockpicker-wrapper directive into lng-clockpicker
+
+1.1.0
+
+* Add nativeOnMobile options in order to delegate to system timepicker on mobile devices
+
+* Correct update of view on mutation of moment date

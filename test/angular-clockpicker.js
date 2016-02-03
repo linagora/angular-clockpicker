@@ -63,6 +63,12 @@ describe('The angular-clockpicker module', function() {
       this.initDirective();
     }));
 
+    it('should properly watch change on the moment date', function() {
+      this.$scope.date.hour('13');
+      this.$scope.$digest();
+      expect(this.directiveElement.val()).to.equal('01:00 PM');
+    });
+
     it('should not make field read-only one non mobile device', function() {
       this.directiveElement.addClass = sinon.spy();
       this.directiveElement.attr = sinon.spy();
@@ -71,13 +77,45 @@ describe('The angular-clockpicker module', function() {
       expect(this.directiveElement.attr).to.not.have.been.called;
     });
 
-    it('should make field read-only one mobile device', function() {
+    it('should make field read-only one mobile device if not nativeOnMobile', function() {
       this.isMobile = true;
       this.directiveElement.addClass = sinon.spy();
       this.directiveElement.attr = sinon.spy();
       this.initDirective();
       expect(this.directiveElement.addClass).to.have.been.calledWith('ignore-readonly');
       expect(this.directiveElement.attr).to.have.been.calledWith('readonly');
+    });
+
+    it('should not make field read-only one mobile device if nativeOnMobile', function() {
+      this.directiveElement.addClass = sinon.spy();
+      this.directiveElement.attr = sinon.spy();
+      this.options.nativeOnMobile = true;
+      this.isMobile = true;
+      this.initDirective();
+      expect(this.directiveElement.attr).to.not.have.been.calledWith('readonly');
+    });
+
+    it('should set type to time if mobile and nativeOnMobile', function() {
+      this.directiveElement.attr = sinon.spy();
+      this.isMobile = true;
+      this.options.nativeOnMobile = true;
+      this.initDirective();
+      expect(this.directiveElement.attr).to.have.been.calledWith('type', 'time');
+    });
+
+    it('should not set type to time if not mobile or not nativeOnMobile', function() {
+      [
+        { nativeOnMobile: false, isMobile: false },
+        { nativeOnMobile: true, isMobile: false },
+        { nativeOnMobile: false, isMobile: true }
+      ].forEach(function(o) {
+        this.directiveElement.addClass = sinon.spy();
+        this.directiveElement.attr = sinon.spy();
+        this.options.nativeOnMobile = o.nativeOnMobile;
+        this.isMobile = o.isMobile;
+        this.initDirective();
+        expect(this.directiveElement.attr).to.not.have.been.calledWith('type', 'time');
+      }, this);
     });
 
     it('should not set css ignore-readonly one mobile phone if already readonly', function() {
@@ -108,20 +146,24 @@ describe('The angular-clockpicker module', function() {
         donetext: 'ok' });
     });
 
-    it('should call clockpickerService.parseTime to set hour of model', function() {
-      this.options = {
-        twelvehour: 'true of false that is the question'
-      };
+    it('should call clockpickerService.parseTime to set hour of model with correct arguments', function() {
+      [true, false].forEach(function(isMobile) {
+        [true, false].forEach(function(nativeOnMobile) {
+          this.isMobile = isMobile;
+          this.options = {
+            twelvehour: 'true of false that is the question',
+            nativeOnMobile: nativeOnMobile
+          };
 
-      this.clockpickerService.parseTime = sinon.stub().returns({ hour: 12, minute: 13 });
+          this.clockpickerService.parseTime = sinon.stub().returns({ hour: 12, minute: 13 });
+          this.initDirective();
+          var input = 'a user input';
+          this.dateNgModel.$setViewValue(input);
 
-      this.initDirective();
-
-      var input = 'a user input';
-      this.dateNgModel.$setViewValue(input);
-
-      expect(this.clockpickerService.parseTime).to.have.been.calledWith(this.options.twelvehour, input);
-      expect(this.$scope.date.format('HH:mm')).to.equal('12:13');
+          expect(this.clockpickerService.parseTime).to.have.been.calledWith(isMobile && nativeOnMobile, this.options.twelvehour, input);
+          expect(this.$scope.date.format('HH:mm')).to.equal('12:13');
+        }, this);
+      }, this);
     });
 
     it('should call clockpickerService.parseTime to ensure validity of input', function() {
@@ -137,13 +179,13 @@ describe('The angular-clockpicker module', function() {
       this.dateNgModel.$setValidity = sinon.spy();
       this.dateNgModel.$setViewValue(input);
 
-      expect(this.clockpickerService.parseTime).to.have.been.calledWith(this.options.twelvehour, input);
+      expect(this.clockpickerService.parseTime).to.have.been.calledWith(sinon.match.any, sinon.match.any, input);
       expect(this.dateNgModel.$setValidity).to.have.been.calledWith('badFormat', true);
 
       input = 'invalid input';
       this.clockpickerService.parseTime.returns(undefined);
       this.dateNgModel.$setViewValue(input);
-      expect(this.clockpickerService.parseTime).to.have.been.calledWith(this.options.twelvehour, input);
+      expect(this.clockpickerService.parseTime).to.have.been.calledWith(sinon.match.any, sinon.match.any, input);
       expect(this.dateNgModel.$setValidity).to.have.been.calledWith('badFormat', false);
     });
 
@@ -155,28 +197,41 @@ describe('The angular-clockpicker module', function() {
     });
 
     describe('the formatting of time', function() {
-      it('should format time correctly in twelvehour mode', function() {
-        var date = this.moment('1935-10-31 12:30');
-        var formatedTime = 'time for british';
+      it('should format time correctly in twelvehour mode if not isMobile and nativeOnMobile', function() {
+        [
+          { isMobile: true, nativeOnMobile: false },
+          { isMobile: false, nativeOnMobile: true },
+          { isMobile: false, nativeOnMobile: false }
+        ].forEach(function(o) {
+          this.$scope = this.$rootScope.$new();
+          this.isMobile = o.isMobile;
+          this.options = {
+            nativeOnMobile: o.nativeOnMobile
+          };
+          this.initDirective();
+          var date = this.moment('1935-10-31 12:30');
+          var formatedTime = 'time for british';
 
-        var formatSpy = sinon.stub().returns(formatedTime);
+          var formatSpy = sinon.stub().returns(formatedTime);
 
-        date.clone = _.wrap(date.clone, function(func) {
-          var cloneDate = func.apply(date);
-          cloneDate.local = _.wrap(cloneDate.local, function(func) {
-            var formatDate = func.apply(cloneDate);
-            formatDate.format = formatSpy;
-            return formatDate;
+          date.clone = _.wrap(date.clone, function(func) {
+            var cloneDate = func.apply(date);
+            cloneDate.local = _.wrap(cloneDate.local, function(func) {
+              var formatDate = func.apply(cloneDate);
+              formatDate.format = formatSpy;
+              return formatDate;
+            });
+            return cloneDate;
           });
-          return cloneDate;
-        });
 
-        this.$scope.$apply(function() {
-          self.$scope.date = date;
-        });
+          this.$scope.$apply(function() {
+            self.$scope.date = date;
+          });
 
-        expect(formatSpy).to.have.been.calledWith('hh:mm A');
-        expect(this.dateNgModel.$viewValue).to.equal(formatedTime);
+          expect(formatSpy).to.have.been.calledWith('hh:mm A');
+          expect(this.dateNgModel.$viewValue).to.equal(formatedTime);
+          this.$scope.$destroy();
+        }, this);
       });
 
       it('should format time correctly in 24 hour mode', function() {
@@ -188,6 +243,38 @@ describe('The angular-clockpicker module', function() {
 
         var date = this.moment('1935-10-31 12:30');
         var formatedTime = 'time for frenchies';
+        var formatSpy = sinon.stub().returns(formatedTime);
+
+        date.clone = _.wrap(date.clone, function(func) {
+          var cloneDate = func.apply(date);
+          cloneDate.local = _.wrap(cloneDate.local, function(func) {
+            var localDate = func.apply(cloneDate);
+            localDate.format = formatSpy;
+            return localDate;
+          });
+          return cloneDate;
+        });
+
+        this.$scope.$apply(function() {
+          self.$scope.date = date;
+        });
+
+        expect(formatSpy).to.have.been.calledWith('HH:mm');
+        expect(this.dateNgModel.$viewValue).to.equal(formatedTime);
+      });
+
+      it('should format time correctly in 24 hour mode if isMobile and nativeOnMobile no matter twelvehour mode', function() {
+        this.options = {
+          twelvehour: true,
+          nativeOnMobile: true
+        };
+
+        this.isMobile = true;
+
+        this.initDirective();
+
+        var date = this.moment('1935-10-31 12:30');
+        var formatedTime = 'time for mobile';
         var formatSpy = sinon.stub().returns(formatedTime);
 
         date.clone = _.wrap(date.clone, function(func) {
@@ -315,25 +402,25 @@ describe('The angular-clockpicker module', function() {
           minute: 4
         }
       }].forEach(function(obj) {
-        expect(this.clockpickerService.parseTime(true, obj.input)).to.deep.equals(obj.output);
+        expect(this.clockpickerService.parseTime(false, true, obj.input)).to.deep.equals(obj.output);
       }, this);
     });
 
     it('should not parse valid 24 hour format time when asking to parse twelve hour time', function() {
       ['00:00', '01:00', '23:00', '12:30'].forEach(function(date24) {
-        expect(this.clockpickerService.parseTime(true, date24)).to.be.undefined;
+        expect(this.clockpickerService.parseTime(false, true, date24)).to.be.undefined;
       }, this);
     });
 
     it('should not parse invalid twelve hour time', function() {
       ['01:90 AM', '00:00 AM', '00:00 PM', '13:00 PM', '01:00 MM', '12:30', ':00', '00:', 'everybody as something to hide'].forEach(function(invalidDate) {
-        expect(this.clockpickerService.parseTime(true, invalidDate)).to.be.undefined;
+        expect(this.clockpickerService.parseTime(false, true, invalidDate)).to.be.undefined;
       }, this);
     });
 
     it('should not parse invalid 24 hour time', function() {
       ['00:00 AM', '25:00', '01:00 PM', '12:60', ':00', '00:', 'expect me and my monkey'].forEach(function(invalidDate) {
-        expect(this.clockpickerService.parseTime(false, invalidDate)).to.be.undefined;
+        expect(this.clockpickerService.parseTime(false, false, invalidDate)).to.be.undefined;
       }, this);
     });
 
@@ -363,7 +450,80 @@ describe('The angular-clockpicker module', function() {
           minute: 4
         }
       }].forEach(function(obj) {
-        expect(this.clockpickerService.parseTime(false, obj.input)).to.deep.equals(obj.output);
+        expect(this.clockpickerService.parseTime(false, false, obj.input)).to.deep.equals(obj.output);
+      }, this);
+    });
+
+    it('should handle opera date format if nativeMobile is one', function() {
+      expect(this.clockpickerService.parseTime(true, false, '13:14:00')).to.deep.equals({
+        hour: 13,
+        minute: 14
+      });
+    });
+
+    it('should parse twelvehour and 24 hour date if mobileNative is true', function() {
+      [{
+        input: '  12:00 AM  ',
+        output: {
+          minute: 0,
+          hour: 0
+        }
+      }, {
+        input: '  00:00  ',
+        output: {
+          minute: 0,
+          hour: 0
+        }
+      }, {
+        input: '12:42 PM',
+        output: {
+          minute: 42,
+          hour: 12
+        }
+      }, {
+        input: '12:42',
+        output: {
+          minute: 42,
+          hour: 12
+        }
+      }, {
+        input: '1:42 AM',
+        output: {
+          minute: 42,
+          hour: 1
+        }
+      }, {
+        input: '1:42',
+        output: {
+          minute: 42,
+          hour: 1
+        }
+      }, {
+        input: '10:05 PM',
+        output: {
+          hour: 22,
+          minute: 5
+        }
+      }, {
+        input: '22:05',
+        output: {
+          hour: 22,
+          minute: 5
+        }
+      }, {
+        input: '1:4Am',
+        output: {
+          hour: 1,
+          minute: 4
+        }
+      }, {
+        input: '1:4pM',
+        output: {
+          hour: 13,
+          minute: 4
+        }
+      }].forEach(function(obj) {
+        expect(this.clockpickerService.parseTime(true, false, obj.input)).to.deep.equals(obj.output);
       }, this);
     });
   });

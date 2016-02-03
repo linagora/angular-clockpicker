@@ -8,7 +8,17 @@
 
     $scope.options = {
       done: 'Ok !!',
-      twelvehour: true
+      twelvehour: true,
+      nativeOnMobile: true
+    };
+
+    function randomInt(maxExcluded) {
+      return Math.floor(Math.random()*maxExcluded);
+    }
+
+    $scope.randomTime = function () {
+      $scope.date.hour(randomInt(24));
+      $scope.date.minute(randomInt(60));
     };
 
   });
