@@ -29,3 +29,6 @@ Changelog
 * Add nativeOnMobile options in order to delegate to system timepicker on mobile devices
 
 * Correct update of view on mutation of moment date
+
+1.1.1
+* Change dependency angular-moment version to beta
