@@ -25,7 +25,7 @@
     "dependencies": {
       "lng-clockpicker": "~0.0.8",
       "angular": "^1.3.0",
-      "angular-moment": "~1.0.0",
+      "angular-moment": "1.0.0-beta.3",
       "ng-device-detector": "~1.1.7"
     },
     "devDependencies": {
