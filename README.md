@@ -20,15 +20,16 @@ Moreover if you set nativeOnMobile in clockpicker-options, on mobile devices the
 Changelog
 =========
 
-1.0.0
+1.1.1
 
 * Renaming clockpicker-wrapper directive into lng-clockpicker
-
-1.1.0
 
 * Add nativeOnMobile options in order to delegate to system timepicker on mobile devices
 
 * Correct update of view on mutation of moment date
 
-1.1.1
 * Change dependency angular-moment version to beta
+
+1.2.0
+
+* Remove moment local convertion when bind to view
