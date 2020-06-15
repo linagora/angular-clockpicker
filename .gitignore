@@ -9,3 +9,5 @@ frontend/**/*.css.map
 gjslint.xml
 jshint.xml
 npm-debug.log
+dist/
+package-lock.json
